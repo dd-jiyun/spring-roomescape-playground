@@ -32,6 +32,11 @@ public class ReservationController {
         return "reservation";
     }
 
+    @GetMapping("/reservations/{id}")
+    public ResponseEntity<Reservation> reserveOne(@PathVariable Long id) {
+        return ResponseEntity.ok().body(reservationDAO.findReservationById(id));
+    }
+
     @GetMapping("/reservations")
     public ResponseEntity<List<Reservation>> reserveList() {
         return ResponseEntity.ok().body(reservationDAO.findAllReservations());

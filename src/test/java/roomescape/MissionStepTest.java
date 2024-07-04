@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
+import roomescape.dao.ReservationDAO;
 import roomescape.model.Reservation;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -22,6 +23,9 @@ public class MissionStepTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private ReservationDAO reservationDAO;
 
     @Test
     @DisplayName("/로 요청 시 index.html과 200 statusCode 반환하는지 테스트합니다.")
@@ -127,6 +131,23 @@ public class MissionStepTest {
         Integer count = jdbcTemplate.queryForObject("SELECT count(1) from reservation", Integer.class);
 
         assertThat(reservations.size()).isEqualTo(count);
+    }
+
+    @Test
+    @DisplayName("예약을 추가하고 쿼리를 통해 예약 ID로 조회한 이름과 API를 통해 조회한 이름이 동일한지 테스트합니다.")
+    void addReservationAndVerifyNameConsistencyBetweenDatabaseAndApiTest() {
+        jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)", "냠냠이", "2023-08-05", "15:40");
+
+        Reservation nameFormDB = reservationDAO.findReservationById(1L);
+
+        String nameFromApi = RestAssured.given().log().all()
+                .when().get("/reservations/1")
+                .then().log().all()
+                .statusCode(200)
+                .extract().jsonPath().getString("name");
+
+        assertThat(nameFormDB).isNotNull();
+        assertThat(nameFormDB.getName()).isEqualTo(nameFromApi);
     }
 
 }

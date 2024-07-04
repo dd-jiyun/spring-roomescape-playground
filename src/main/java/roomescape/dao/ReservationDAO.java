@@ -24,6 +24,14 @@ public class ReservationDAO {
         return reservations;
     };
 
+    public Reservation findReservationById(Long id) {
+        String sql = "select * from reservation where id = ?";
+
+        Reservation reservation = jdbcTemplate.queryForObject(sql, reservationRowMapper, id);
+
+        return reservation;
+    }
+
     public List<Reservation> findAllReservations() {
         String sql = "select * from reservation";
 
