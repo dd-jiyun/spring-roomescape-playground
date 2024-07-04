@@ -1,10 +1,7 @@
 package roomescape.controller;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -23,9 +20,6 @@ public class ReservationController {
 
     @Autowired
     private ReservationDAO reservationDAO;
-
-    private List<Reservation> reservations = new ArrayList<>();
-    private AtomicLong index = new AtomicLong(1);
 
     @GetMapping("/reservation")
     public String reserve() {
@@ -58,21 +52,14 @@ public class ReservationController {
     public ResponseEntity<Reservation> addReservation(@RequestBody RequestReservation requestReservation) {
         validateRequestReservation(requestReservation);
 
-        Reservation newReservation = Reservation.of(requestReservation, index.getAndIncrement());
-
-        reservations.add(newReservation);
+        Reservation newReservation = reservationDAO.insert(requestReservation);
 
         return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId())).body(newReservation);
     }
 
     @DeleteMapping("/reservations/{id}")
     public ResponseEntity<Void> cancelReservation(@PathVariable Long id) {
-        Reservation reservation = reservations.stream()
-                .filter(r -> Objects.equals(r.getId(), id))
-                .findFirst()
-                .orElseThrow(()-> new BadRequestException("해당하는 예약을 찾을 수 없습니다."));
-
-        reservations.remove(reservation);
+        reservationDAO.delete(id);
 
         return ResponseEntity.noContent().build();
     }
