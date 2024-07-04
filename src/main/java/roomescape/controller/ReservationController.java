@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,12 +13,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import roomescape.dao.ReservationDAO;
 import roomescape.dto.RequestReservation;
 import roomescape.exception.BadRequestException;
 import roomescape.model.Reservation;
 
 @Controller
 public class ReservationController {
+
+    @Autowired
+    private ReservationDAO reservationDAO;
 
     private List<Reservation> reservations = new ArrayList<>();
     private AtomicLong index = new AtomicLong(1);
@@ -29,7 +34,7 @@ public class ReservationController {
 
     @GetMapping("/reservations")
     public ResponseEntity<List<Reservation>> reserveList() {
-        return ResponseEntity.ok().body(reservations);
+        return ResponseEntity.ok().body(reservationDAO.findAllReservations());
     }
 
     private void validateRequestReservation(RequestReservation requestReservation) {
@@ -45,7 +50,7 @@ public class ReservationController {
     }
 
     @PostMapping("/reservations")
-    public ResponseEntity<Reservation> reservation(@RequestBody RequestReservation requestReservation) {
+    public ResponseEntity<Reservation> addReservation(@RequestBody RequestReservation requestReservation) {
         validateRequestReservation(requestReservation);
 
         Reservation newReservation = Reservation.of(requestReservation, index.getAndIncrement());
