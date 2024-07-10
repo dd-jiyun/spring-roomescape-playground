@@ -2,7 +2,6 @@ package roomescape.controller;
 
 import java.net.URI;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,14 +11,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import roomescape.dao.ReservationDAO;
 import roomescape.dto.RequestReservation;
-import roomescape.exception.BadRequestException;
 import roomescape.model.Reservation;
 
 @Controller
 public class ReservationController {
 
-    @Autowired
-    private ReservationDAO reservationDAO;
+    private final ReservationDAO reservationDAO;
+
+    public ReservationController(ReservationDAO reservationDAO) {
+        this.reservationDAO = reservationDAO;
+    }
 
     @GetMapping("/reservation")
     public String reserve() {
@@ -36,22 +37,8 @@ public class ReservationController {
         return ResponseEntity.ok().body(reservationDAO.findAllReservations());
     }
 
-    private void validateRequestReservation(RequestReservation requestReservation) {
-        if (requestReservation.name() == null || requestReservation.name().isEmpty()) {
-            throw new BadRequestException("이름을 작성해주세요");
-        }
-        if (requestReservation.date() == null || requestReservation.date().isEmpty()) {
-            throw new BadRequestException("날짜를 선택해주세요");
-        }
-        if (requestReservation.time() == null || requestReservation.time().isEmpty()) {
-            throw new BadRequestException("시간을 선택해주세요");
-        }
-    }
-
     @PostMapping("/reservations")
     public ResponseEntity<Reservation> addReservation(@RequestBody RequestReservation requestReservation) {
-        validateRequestReservation(requestReservation);
-
         Reservation newReservation = reservationDAO.insert(requestReservation);
 
         return ResponseEntity.created(URI.create("/reservations/" + newReservation.getId())).body(newReservation);

@@ -92,23 +92,6 @@ public class MissionStepTest {
     }
 
     @Test
-    @DisplayName("필요한 데이터를 입력하지 않았을 때 400 statusCode를 반환한다.")
-    void NoRequiredReservationDataExceptionTest() {
-        Map<String, String> params = new HashMap<>();
-
-        params.put("name", "브라운");
-        params.put("date", "");
-        params.put("time", "");
-
-        RestAssured.given().log().all()
-                .contentType(ContentType.JSON)
-                .body(params)
-                .when().post("/reservations")
-                .then().log().all()
-                .statusCode(400);
-    }
-
-    @Test
     @DisplayName("예약을 추가하고 쿼리를 통해 조회한 예약 수와 API를 통해 조회한 예약 수가 동일해야 한다.")
     void addReservationAndVerifyCountMatchesBetweenDatabaseAndApiTest() {
         jdbcTemplate.update("INSERT INTO reservation (name, date, time) VALUES (?, ?, ?)", "브라운", "2023-08-05", "15:40");
@@ -167,6 +150,32 @@ public class MissionStepTest {
 
         Integer countAfterDelete = jdbcTemplate.queryForObject("SELECT count(1) from reservation", Integer.class);
         assertThat(countAfterDelete).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("필요한 데이터를 입력하지 않았을 때 400 statusCode를 반환한다.")
+    void NoRequiredReservationDataExceptionTest() {
+        Map<String, String> params = new HashMap<>();
+
+        params.put("name", "브라운");
+        params.put("date", "");
+        params.put("time", "");
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/reservations")
+                .then().log().all()
+                .statusCode(400);
+    }
+
+    @Test
+    @DisplayName("삭제할 예약 id가 없는 경우 400 statusCode가 반환되며 예외가 발생한다.")
+    void withoutReservationIdToDeleteExceptionTest() {
+        RestAssured.given().log().all()
+                .when().delete("/reservations/1")
+                .then().log().all()
+                .statusCode(400);
     }
 
 }
