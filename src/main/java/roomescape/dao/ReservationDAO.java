@@ -36,8 +36,14 @@ public class ReservationDAO {
         return reservations;
     };
 
+    public int count() {
+        String sql = "SELECT COUNT(1) FROM reservation";
+
+        return jdbcTemplate.queryForObject(sql, Integer.class);
+    }
+
     public Reservation findReservationById(Long id) {
-        String sql = "select * from reservation where id = ?";
+        String sql = "SELECT * FROM reservation WHERE id = ?";
 
         Reservation reservation = jdbcTemplate.queryForObject(sql, reservationRowMapper, id);
 
@@ -45,7 +51,7 @@ public class ReservationDAO {
     }
 
     public List<Reservation> findAllReservations() {
-        String sql = "select * from reservation";
+        String sql = "SELECT * FROM reservation";
 
         List<Reservation> reservations = jdbcTemplate.query(sql, reservationRowMapper);
 
@@ -78,13 +84,19 @@ public class ReservationDAO {
     }
 
     public void delete(Long id) {
-        String sql = "delete from reservation where id = ?";
+        String sql = "DELETE FROM reservation WHERE id = ?";
 
         if (findReservationById(id) == null) {
             throw new BadRequestException("예약 ID가 존재하지 않습니다.");
         }
 
         jdbcTemplate.update(sql, Long.valueOf(id));
+    }
+
+    public void deleteAll() {
+        String sql = "DELETE FROM reservation";
+
+        jdbcTemplate.update(sql);
     }
 
 }
