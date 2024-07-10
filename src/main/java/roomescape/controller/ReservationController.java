@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 import roomescape.dao.ReservationDAO;
 import roomescape.dto.RequestReservation;
 import roomescape.model.Reservation;
@@ -28,11 +29,13 @@ public class ReservationController {
     }
 
     @GetMapping("/reservations/{id}")
+    @ResponseBody
     public ResponseEntity<Reservation> reserveOne(@PathVariable Long id) {
         return ResponseEntity.ok().body(reservationDAO.findReservationById(id));
     }
 
     @GetMapping("/reservations")
+    @ResponseBody
     public ResponseEntity<List<Reservation>> reserveList() {
         return ResponseEntity.ok().body(reservationDAO.findAllReservations());
     }
