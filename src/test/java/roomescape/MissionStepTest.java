@@ -164,4 +164,58 @@ public class MissionStepTest {
                 .statusCode(400);
     }
 
+    @Test
+    @DisplayName("예약 시간을 추가하면 201 상태코드가 반환된다.")
+    void timeCreateAndDeleteTest() {
+        Map<String, String> params = new HashMap<>();
+        params.put("time", "10:00");
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/times")
+                .then().log().all()
+                .statusCode(201)
+                .header("Location", "/times/1");
+
+        RestAssured.given().log().all()
+                .when().get("/times")
+                .then().log().all()
+                .statusCode(200)
+                .body("size()", is(1));
+
+        RestAssured.given().log().all()
+                .when().delete("/times/1")
+                .then().log().all()
+                .statusCode(204);
+    }
+
+    @Test
+    @DisplayName("예약 시간을 추가할 때 시간이 비어있으면 예외가 발생한다.")
+    void NoRequiredTimeExceptionTest() {
+        Map<String, String> params = new HashMap<>();
+        params.put("time", "");
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/times")
+                .then().log().all()
+                .statusCode(400);
+    }
+
+    @Test
+    @DisplayName("예약 시간이 형식에 맞지 않으면 예외가 발생한다")
+    void NoMatchTimePatternExceptionTest() {
+        Map<String, String> params = new HashMap<>();
+        params.put("time", "12:--");
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(params)
+                .when().post("/times")
+                .then().log().all()
+                .statusCode(400);
+    }
+
 }
