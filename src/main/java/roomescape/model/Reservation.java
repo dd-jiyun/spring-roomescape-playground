@@ -1,7 +1,5 @@
 package roomescape.model;
 
-import roomescape.dto.RequestReservation;
-
 public class Reservation {
 
     private Long id;
@@ -30,10 +28,6 @@ public class Reservation {
 
     public String getTime() {
         return time;
-    }
-
-    public static Reservation of(RequestReservation requestReservation, Long id) {
-        return new Reservation(id, requestReservation.name(), requestReservation.date(), requestReservation.time());
     }
 
 }
