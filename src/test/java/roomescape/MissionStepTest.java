@@ -12,9 +12,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import roomescape.dao.ReservationDAO;
+import roomescape.dao.TimeDAO;
 import roomescape.dto.RequestReservation;
+import roomescape.dto.RequestTime;
 import roomescape.model.Reservation;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -22,7 +25,12 @@ import roomescape.model.Reservation;
 public class MissionStepTest {
 
     @Autowired
+    private JdbcTemplate jdbcTemplate;
+    @Autowired
     private ReservationDAO reservationDAO;
+    @Autowired
+    private TimeDAO timeDAO;
+
 
     @Test
     @DisplayName("/로 요청 시 index.html과 200 statusCode를 반환한다.")
@@ -55,11 +63,14 @@ public class MissionStepTest {
     @Test
     @DisplayName("예약 추가 시 201 statusCode를 반환하며 저장한다.")
     void createReservationTest() {
-        Map<String, String> params = new HashMap<>();
+        Map<String, Object> params = new HashMap<>();
 
         params.put("name", "브라운");
         params.put("date", "2023-08-05");
-        params.put("time", "15:40");
+        params.put("time", "1");
+
+        String sql = "INSERT INTO time (id, time) VALUES (?, ?)";
+        jdbcTemplate.update(sql, 1L, "12:00");
 
         RestAssured.given().log().all()
                 .contentType(ContentType.JSON)
@@ -91,7 +102,9 @@ public class MissionStepTest {
     @Test
     @DisplayName("예약을 추가하고 DAO를 통해 조회한 예약 수와 API를 통해 조회한 예약 수가 동일해야 한다.")
     void addReservationAndVerifyCountMatchesBetweenDatabaseAndApiTest() {
-        reservationDAO.insert(new RequestReservation("브라운", "2023-08-05", "15:40"));
+        timeDAO.insert(new RequestTime("10:00"));
+
+        reservationDAO.insert(new RequestReservation("브라운", "2023-08-05", 1L));
 
         List<Reservation> reservations = RestAssured.given().log().all()
                 .when().get("/reservations")
@@ -107,7 +120,9 @@ public class MissionStepTest {
     @Test
     @DisplayName("예약을 추가하고 쿼리를 통해 예약 ID로 조회한 이름과 API를 통해 조회한 이름이 동일해야 한다.")
     void addReservationAndVerifyNameConsistencyBetweenDatabaseAndApiTest() {
-        reservationDAO.insert(new RequestReservation("냠냠이", "2023-08-05", "15:40"));
+        timeDAO.insert(new RequestTime("10:00"));
+
+        reservationDAO.insert(new RequestReservation("냠냠이", "2023-08-05", 1L));
 
         Reservation nameFromDB = reservationDAO.findReservationById(1L);
 
@@ -124,9 +139,11 @@ public class MissionStepTest {
     @Test
     @DisplayName("DAO를 통해 테이블에 예약을 추가한 후, 조회 쿼리를 통해 데이터가 저장되었는지 확인한다. 그 후 취소 API를 통해 테이블 예약 정보를 삭제하고 테이블에서 삭제되었는지 확인한다.")
     void reservationCreateAndDeleteFromDBTest() {
+        timeDAO.insert(new RequestTime("10:00"));
+
         reservationDAO.deleteAll();
 
-        RequestReservation requestReservation = new RequestReservation("브라운", "2023-08-05", "10:00");
+        RequestReservation requestReservation = new RequestReservation("브라운", "2023-08-05", 1L);
         reservationDAO.insert(requestReservation);
 
         int count = reservationDAO.count();
@@ -214,6 +231,22 @@ public class MissionStepTest {
                 .contentType(ContentType.JSON)
                 .body(params)
                 .when().post("/times")
+                .then().log().all()
+                .statusCode(400);
+    }
+
+    @Test
+    @DisplayName("기존 예약 추가 API 스펙에 맞춰 요청을 보내면 에러가 발생한다.")
+    void requestToAddExistingReservationReturnsError() {
+        Map<String, String> reservation = new HashMap<>();
+        reservation.put("name", "브라운");
+        reservation.put("date", "2023-08-05");
+        reservation.put("time", "10:00");
+
+        RestAssured.given().log().all()
+                .contentType(ContentType.JSON)
+                .body(reservation)
+                .when().post("/reservations")
                 .then().log().all()
                 .statusCode(400);
     }
