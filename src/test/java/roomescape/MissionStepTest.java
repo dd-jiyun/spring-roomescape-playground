@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.is;
 
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,10 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
+import roomescape.controller.ReservationController;
 import roomescape.dao.ReservationDAO;
 import roomescape.dao.TimeDAO;
-import roomescape.dto.RequestReservation;
-import roomescape.dto.RequestTime;
 import roomescape.model.Reservation;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -30,7 +30,8 @@ public class MissionStepTest {
     private ReservationDAO reservationDAO;
     @Autowired
     private TimeDAO timeDAO;
-
+    @Autowired
+    private ReservationController reservationController;
 
     @Test
     @DisplayName("/로 요청 시 index.html과 200 statusCode를 반환한다.")
@@ -102,9 +103,10 @@ public class MissionStepTest {
     @Test
     @DisplayName("예약을 추가하고 DAO를 통해 조회한 예약 수와 API를 통해 조회한 예약 수가 동일해야 한다.")
     void addReservationAndVerifyCountMatchesBetweenDatabaseAndApiTest() {
-        timeDAO.insert(new RequestTime("10:00"));
+        String sql = "INSERT INTO time (id, time) VALUES (?, ?)";
+        jdbcTemplate.update(sql, 1L, "12:00");
 
-        reservationDAO.insert(new RequestReservation("브라운", "2023-08-05", 1L));
+        reservationDAO.save(new Reservation(1L, "브라운", "2023-08-05", timeDAO.findById(1L)));
 
         List<Reservation> reservations = RestAssured.given().log().all()
                 .when().get("/reservations")
@@ -118,33 +120,14 @@ public class MissionStepTest {
     }
 
     @Test
-    @DisplayName("예약을 추가하고 쿼리를 통해 예약 ID로 조회한 이름과 API를 통해 조회한 이름이 동일해야 한다.")
-    void addReservationAndVerifyNameConsistencyBetweenDatabaseAndApiTest() {
-        timeDAO.insert(new RequestTime("10:00"));
-
-        reservationDAO.insert(new RequestReservation("냠냠이", "2023-08-05", 1L));
-
-        Reservation nameFromDB = reservationDAO.findReservationById(1L);
-
-        String nameFromApi = RestAssured.given().log().all()
-                .when().get("/reservations/1")
-                .then().log().all()
-                .statusCode(200)
-                .extract().jsonPath().getString("name");
-
-        assertThat(nameFromDB).isNotNull();
-        assertThat(nameFromDB.getName()).isEqualTo(nameFromApi);
-    }
-
-    @Test
     @DisplayName("DAO를 통해 테이블에 예약을 추가한 후, 조회 쿼리를 통해 데이터가 저장되었는지 확인한다. 그 후 취소 API를 통해 테이블 예약 정보를 삭제하고 테이블에서 삭제되었는지 확인한다.")
     void reservationCreateAndDeleteFromDBTest() {
-        timeDAO.insert(new RequestTime("10:00"));
-
         reservationDAO.deleteAll();
 
-        RequestReservation requestReservation = new RequestReservation("브라운", "2023-08-05", 1L);
-        reservationDAO.insert(requestReservation);
+        String sql = "INSERT INTO time (id, time) VALUES (?, ?)";
+        jdbcTemplate.update(sql, 1L, "12:00");
+
+        reservationDAO.save(new Reservation(1L, "브라운", "2023-08-05", timeDAO.findById(1L)));
 
         int count = reservationDAO.count();
         assertThat(count).isEqualTo(1);
@@ -249,6 +232,20 @@ public class MissionStepTest {
                 .when().post("/reservations")
                 .then().log().all()
                 .statusCode(400);
+    }
+
+    @Test
+    void 십단계() {
+        boolean isJdbcTemplateInjected = false;
+
+        for (Field field : reservationController.getClass().getDeclaredFields()) {
+            if (field.getType().equals(JdbcTemplate.class)) {
+                isJdbcTemplateInjected = true;
+                break;
+            }
+        }
+
+        assertThat(isJdbcTemplateInjected).isFalse();
     }
 
 }

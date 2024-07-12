@@ -1,7 +1,6 @@
 package roomescape.dao;
 
 import java.util.List;
-import java.util.regex.Pattern;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -9,15 +8,11 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
-import roomescape.dto.RequestTime;
-import roomescape.exception.BadRequestException;
 import roomescape.model.Time;
+import roomescape.repository.TimeRepository;
 
 @Repository
-public class TimeDAO {
-
-    private static final String TIME_PATTERN = "^([01][0-9]|2[0-3]):([0-5][0-9])$";
-    private static final Pattern pattern = Pattern.compile(TIME_PATTERN);
+public class TimeDAO implements TimeRepository {
 
     private final JdbcTemplate jdbcTemplate;
     private final SimpleJdbcInsert jdbcInsert;
@@ -38,50 +33,36 @@ public class TimeDAO {
         return time;
     };
 
-    public Time findTimeById(Long id) {
+    @Override
+    public Time findById(Long id) {
         String sql = "SELECT * FROM time WHERE id = ? ";
 
         return jdbcTemplate.queryForObject(sql, timeRowMapper, id);
     }
 
-    public List<Time> findAllTimes() {
+    @Override
+    public List<Time> findAll() {
         String sql = "SELECT * FROM time";
 
-        List<Time> times = jdbcTemplate.query(sql, timeRowMapper);
-
-        return times;
+        return jdbcTemplate.query(sql, timeRowMapper);
     }
 
-    private boolean isTimePattern(RequestTime requestTime) {
-        return pattern.matcher(requestTime.time()).matches();
+    private SqlParameterSource createSqlParameterSource(Time time) {
+        return new MapSqlParameterSource()
+                .addValue("time", time.getTime());
     }
 
-    private void validateRequestTime(RequestTime requestTime) {
-        if (requestTime.time() == null || requestTime.time().isEmpty()) {
-            throw new BadRequestException("시간을 입력해주세요");
-        }
-        if (!isTimePattern(requestTime)) {
-            throw new BadRequestException("시간 형식에 맞게 입력해주세요.");
-        }
+    @Override
+    public Time save(Time time) {
+        Long newId = jdbcInsert.executeAndReturnKey(createSqlParameterSource(time)).longValue();
+
+        return new Time(newId, time.getTime());
     }
 
-    public Time insert(RequestTime requestTime) {
-        validateRequestTime(requestTime);
-
-        SqlParameterSource params = new MapSqlParameterSource()
-                .addValue("time", requestTime.time());
-
-        Long id = jdbcInsert.executeAndReturnKey(params).longValue();
-
-        return new Time(id, requestTime.time());
-    }
-
+    @Override
     public void delete(Long id) {
         String sql = "DELETE FROM time WHERE id = ?";
 
-        if (findTimeById(id) == null) {
-            throw new BadRequestException("존재하지 않는 시간입니다.");
-        }
         jdbcTemplate.update(sql, Long.valueOf(id));
     }
 

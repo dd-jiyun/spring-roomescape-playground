@@ -10,17 +10,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
-import roomescape.dao.TimeDAO;
 import roomescape.dto.RequestTime;
 import roomescape.model.Time;
+import roomescape.service.TimeService;
 
 @Controller
 public class TimeController {
 
-    private final TimeDAO timeDAO;
+    private final TimeService timeService;
 
-    public TimeController(TimeDAO timeDAO) {
-        this.timeDAO = timeDAO;
+    public TimeController(TimeService timeService) {
+        this.timeService = timeService;
     }
 
     @GetMapping("/time")
@@ -31,19 +31,19 @@ public class TimeController {
     @GetMapping("/times")
     @ResponseBody
     public ResponseEntity<List<Time>> timeList() {
-        return ResponseEntity.ok().body(timeDAO.findAllTimes());
+        return ResponseEntity.ok().body(timeService.getTimeList());
     }
 
     @PostMapping("/times")
     public ResponseEntity<Time> addTime(@RequestBody RequestTime requestTime) {
-        Time newTime = timeDAO.insert(requestTime);
+        Time newTime = timeService.addTime(requestTime);
 
         return ResponseEntity.created(URI.create("/times/" + newTime.getId())).body(newTime);
     }
 
     @DeleteMapping("/times/{id}")
     public ResponseEntity<Void> cancelTime(@PathVariable Long id) {
-        timeDAO.delete(id);
+        timeService.cancelTime(id);
 
         return ResponseEntity.noContent().build();
     }

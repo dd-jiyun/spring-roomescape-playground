@@ -1,5 +1,7 @@
 package roomescape.model;
 
+import roomescape.dto.RequestTime;
+
 public class Time {
 
     private Long id;
@@ -16,6 +18,10 @@ public class Time {
 
     public String getTime() {
         return time;
+    }
+
+    public static Time of(RequestTime requestTime) {
+        return new Time(null, requestTime.time());
     }
 
 }
