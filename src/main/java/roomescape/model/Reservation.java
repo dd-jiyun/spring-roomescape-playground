@@ -1,5 +1,7 @@
 package roomescape.model;
 
+import roomescape.dto.RequestReservation;
+
 public class Reservation {
 
     private Long id;
@@ -33,5 +35,5 @@ public class Reservation {
     public static Reservation of(RequestReservation request, Time time) {
         return new Reservation(null, request.name(), request.date(), time);
     }
-  
+
 }

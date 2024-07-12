@@ -235,7 +235,8 @@ public class MissionStepTest {
     }
 
     @Test
-    void 십단계() {
+    @DisplayName("데이터베이스 관련 로직을 다른 클래스로 분리한 것을 확인한다.")
+    void testDatabaseLogicSeparation() {
         boolean isJdbcTemplateInjected = false;
 
         for (Field field : reservationController.getClass().getDeclaredFields()) {
