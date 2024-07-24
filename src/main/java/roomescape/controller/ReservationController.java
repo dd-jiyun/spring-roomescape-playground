@@ -41,6 +41,7 @@ public class ReservationController {
     }
 
     @PostMapping("/reservations")
+    @ResponseBody
     public ResponseEntity<Reservation> addReservation(@RequestBody RequestReservation requestReservation) {
         Reservation newReservation = reservationService.addReservation(requestReservation);
 
@@ -48,6 +49,7 @@ public class ReservationController {
     }
 
     @DeleteMapping("/reservations/{id}")
+    @ResponseBody
     public ResponseEntity<Void> cancelReservation(@PathVariable Long id) {
         reservationService.cancelReservation(id);
 

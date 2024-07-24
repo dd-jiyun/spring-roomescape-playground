@@ -35,6 +35,7 @@ public class TimeController {
     }
 
     @PostMapping("/times")
+    @ResponseBody
     public ResponseEntity<Time> addTime(@RequestBody RequestTime requestTime) {
         Time newTime = timeService.addTime(requestTime);
 
@@ -42,6 +43,7 @@ public class TimeController {
     }
 
     @DeleteMapping("/times/{id}")
+    @ResponseBody
     public ResponseEntity<Void> cancelTime(@PathVariable Long id) {
         timeService.cancelTime(id);
 
