@@ -28,22 +28,8 @@ public class ReservationService {
         return reservationRepository.findById(id);
     }
 
-    private void validateRequestReservation(RequestReservation requestReservation) {
-        if (requestReservation.name() == null || requestReservation.name().isEmpty()) {
-            throw new BadRequestException("이름을 작성해주세요");
-        }
-        if (requestReservation.date() == null || requestReservation.date().isEmpty()) {
-            throw new BadRequestException("날짜를 선택해주세요");
-        }
-        if (requestReservation.time() == null) {
-            throw new BadRequestException("시간을 선택해주세요");
-        }
-    }
-
     @Transactional
     public Reservation addReservation(RequestReservation requestReservation) {
-        validateRequestReservation(requestReservation);
-
         Reservation reservation = convertToReservation(requestReservation);
 
         return reservationRepository.save(reservation);

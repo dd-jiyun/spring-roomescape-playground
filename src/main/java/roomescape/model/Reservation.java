@@ -1,6 +1,7 @@
 package roomescape.model;
 
 import roomescape.dto.RequestReservation;
+import roomescape.exception.BadRequestException;
 
 public class Reservation {
 
@@ -33,7 +34,21 @@ public class Reservation {
     }
 
     public static Reservation of(RequestReservation request, Time time) {
-        return new Reservation(null, request.name(), request.date(), time);
+        Reservation reservation = new Reservation(null, request.name(), request.date(), time);
+        reservation.validate();
+        return reservation;
+    }
+
+    private void validate() {
+        if (this.name == null || this.name.isEmpty()) {
+            throw new BadRequestException("이름을 작성해주세요");
+        }
+        if (this.date == null || this.date.isEmpty()) {
+            throw new BadRequestException("날짜를 선택해주세요");
+        }
+        if (this.time == null) {
+            throw new BadRequestException("시간을 선택해주세요");
+        }
     }
 
 }
