@@ -1,7 +1,6 @@
 package roomescape.model;
 
 import java.util.regex.Pattern;
-import roomescape.dto.RequestTime;
 import roomescape.exception.BadRequestException;
 
 public class Time {
@@ -11,9 +10,14 @@ public class Time {
     private Long id;
     private String time;
 
+    public Time(String time) {
+        this.time = time;
+    }
+
     public Time(Long id, String time) {
         this.id = id;
         this.time = time;
+        validate();
     }
 
     public Long getId() {
@@ -21,12 +25,6 @@ public class Time {
     }
 
     public String getTime() {
-        return time;
-    }
-
-    public static Time of(RequestTime requestTime) {
-        Time time = new Time(null, requestTime.time());
-        time.validate();
         return time;
     }
 

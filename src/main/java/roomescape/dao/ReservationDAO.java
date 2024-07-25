@@ -38,10 +38,12 @@ public class ReservationDAO implements ReservationRepository {
         return reservations;
     };
 
-    public int count() {
-        String sql = "SELECT COUNT(1) FROM reservation";
+    @Override
+    public boolean existById(Long id) {
+        String sql = "SELECT COUNT(1) FROM reservation WHERE id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
 
-        return jdbcTemplate.queryForObject(sql, Integer.class);
+        return count != null && count > 0;
     }
 
     @Override
@@ -100,13 +102,6 @@ public class ReservationDAO implements ReservationRepository {
         String sql = "DELETE FROM reservation WHERE id = ?";
 
         jdbcTemplate.update(sql, id);
-    }
-
-    @Override
-    public void deleteAll() {
-        String sql = "DELETE FROM reservation";
-
-        jdbcTemplate.update(sql);
     }
 
 }

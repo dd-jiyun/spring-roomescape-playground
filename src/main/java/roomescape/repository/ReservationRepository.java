@@ -6,7 +6,7 @@ import roomescape.model.Time;
 
 public interface ReservationRepository {
 
-    int count();
+    boolean existById(Long id);
 
     Reservation findById(Long id);
 
@@ -17,7 +17,5 @@ public interface ReservationRepository {
     Reservation save(Reservation reservation);
 
     void delete(Long id);
-
-    void deleteAll();
 
 }

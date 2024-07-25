@@ -24,7 +24,7 @@ public class TimeService {
 
     @Transactional
     public Time addTime(RequestTime requestTime) {
-        Time time = convertTime(requestTime);
+        Time time = new Time(requestTime.time());
 
         return timeRepository.save(time);
     }
@@ -37,9 +37,4 @@ public class TimeService {
 
         timeRepository.delete(id);
     }
-
-    private Time convertTime(RequestTime requestTime) {
-        return Time.of(requestTime);
-    }
-
 }

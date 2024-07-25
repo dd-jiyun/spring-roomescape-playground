@@ -114,7 +114,8 @@ public class MissionStepTest {
                 .statusCode(200).extract()
                 .jsonPath().getList(".", Reservation.class);
 
-        int count = reservationDAO.count();
+        String countSql = "SELECT COUNT(*) FROM reservation";
+        int count = jdbcTemplate.queryForObject(countSql, Integer.class);
 
         assertThat(reservations.size()).isEqualTo(count);
     }
@@ -122,20 +123,18 @@ public class MissionStepTest {
     @Test
     @DisplayName("DAO를 통해 테이블에 예약을 추가한 후, 조회 쿼리를 통해 데이터가 저장되었는지 확인한다. 그 후 취소 API를 통해 테이블 예약 정보를 삭제하고 테이블에서 삭제되었는지 확인한다.")
     void reservationCreateAndDeleteFromDBTest() {
-        reservationDAO.deleteAll();
-      
         String sql = "INSERT INTO time (id, time) VALUES (?, ?)";
         jdbcTemplate.update(sql, 1L, "12:00");
 
         reservationDAO.save(new Reservation(1L, "브라운", "2023-08-05", timeDAO.findById(1L)));
 
-        int count = reservationDAO.count();
-        assertThat(count).isEqualTo(1);
+        boolean existsBeforeDelete = reservationDAO.existById(1L);
+        assertThat(existsBeforeDelete).isTrue();
 
         reservationDAO.delete(1L);
 
-        int countAfterDelete = reservationDAO.count();
-        assertThat(countAfterDelete).isEqualTo(0);
+        boolean existsAfterDelete = reservationDAO.existById(1L);
+        assertThat(existsAfterDelete).isFalse();
     }
 
     @Test

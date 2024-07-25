@@ -30,7 +30,8 @@ public class ReservationService {
 
     @Transactional
     public Reservation addReservation(RequestReservation requestReservation) {
-        Reservation reservation = convertToReservation(requestReservation);
+        Time time = reservationRepository.findTimeById(requestReservation.time());
+        Reservation reservation = new Reservation(requestReservation.name(), requestReservation.date(), time);
 
         return reservationRepository.save(reservation);
     }
@@ -43,11 +44,6 @@ public class ReservationService {
         }
 
         reservationRepository.delete(id);
-    }
-
-    private Reservation convertToReservation(RequestReservation request) {
-        Time time = reservationRepository.findTimeById(request.time());
-        return Reservation.of(request, time);
     }
 
 }

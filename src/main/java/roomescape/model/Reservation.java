@@ -1,6 +1,5 @@
 package roomescape.model;
 
-import roomescape.dto.RequestReservation;
 import roomescape.exception.BadRequestException;
 
 public class Reservation {
@@ -10,11 +9,21 @@ public class Reservation {
     private String date;
     private Time time;
 
+    public Reservation() {
+    }
+
+    public Reservation(String name, String date, Time time) {
+        this.name = name;
+        this.date = date;
+        this.time = time;
+    }
+
     public Reservation(Long id, String name, String date, Time time) {
         this.id = id;
         this.name = name;
         this.date = date;
         this.time = time;
+        validate();
     }
 
     public Long getId() {
@@ -31,12 +40,6 @@ public class Reservation {
 
     public Time getTime() {
         return time;
-    }
-
-    public static Reservation of(RequestReservation request, Time time) {
-        Reservation reservation = new Reservation(null, request.name(), request.date(), time);
-        reservation.validate();
-        return reservation;
     }
 
     private void validate() {
